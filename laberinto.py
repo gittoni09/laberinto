@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #########################################################
-# Create and print a console based laberinth 
+# Create, print and resolve a console based laberinth
+# python3 laberinto.py 
 # 2020 - Antonio Royo Moraga
 ##########################################################
 import time
@@ -15,14 +16,16 @@ def main(stdscr):
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     #Colour of the text messages
     curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    #Resolution path colour
+    curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
     #The laberinth is initially filled with the border character (space) and the wall character (#)
     #The laberinth has a fixed size in each execution
-    maxH = 36
+    maxH = 35 
     maxV = 23
     A = []
     A.append("                                   ")
     for i in range (1,maxV-1,1):
-        A.append(" ################################## ")
+        A.append(" ################################# ")
     A.append("                                   ")
 
     #Initialize the address counter that stores addresses in pairs V, H (Vertical, Horizontal)
@@ -63,7 +66,7 @@ def main(stdscr):
         C.append(temp)
     #Main loop to create the laberinth
     while not(finalizado):
-        time.sleep (0.1) #Small delay to make the laberinth build more visually attractive
+        time.sleep (0.05) #Small delay to make the laberinth build more visually attractive
         LI = numCaminos()
         stdscr.refresh()
         if LI == 0: #What happens if there are no open paths from the current position
@@ -91,7 +94,7 @@ def main(stdscr):
                         avanzando = True
                 elif (random.random() > 0.5 and H+2 < maxH):
                     if (A[V][H+2] == "#"):
-                        old = len (A[V])
+                        #old = len (A[V])
                         A[V] = A [V][:H] + "OO" + A [V][H+2:]
                         stdscr.addstr(V,H+1,"OO", curses.color_pair(2))
                         H += 2
@@ -126,7 +129,7 @@ def main(stdscr):
                     avanzando = True
             elif (random.random() > 0.5 and H+2 < maxH):
                 if (A[V][H+2] == "#"):
-                    old = len (A[V])
+                    #old = len (A[V])
                     A[V] = A [V][:H] + "OO" + A [V][H+2:]
                     stdscr.addstr(V,H+1,"OO", curses.color_pair(2))
                     H += 2
@@ -149,11 +152,200 @@ def main(stdscr):
                     guardaPosic()
                     avanzando = True
 
-    #Final messages and algorithm closure
+    #Final messages and build algorithm closure
     stdscr.addstr(maxV-1,0,"Wall symbol: #  Laberinth path: O", curses.color_pair(3))
-    stdscr.addstr(0,0,"Finished!", curses.color_pair(3))
+    stdscr.addstr(0,0,"Finished! Press a key to solve the laberinth", curses.color_pair(3))
     stdscr.refresh()
     stdscr.getkey()
+
+    #Algorithm to solve the laberinth
+    #This is a static algorith and we start on this position
+    V = 1
+    H = 1
+    #direction variable means the direction to follow. 0 -> right, 1 -> down, 2 -> left, 3 -> up
+    direction = 0
+    #Coordinates of the next laberinth cell to try
+    nV = V
+    nH = H
+    #Resolution coordinates
+    fV = 21
+    fH = 33
+    #Create a copy of the laberith for the resolution algorithm
+    B = A.copy()
+
+    stdscr.addstr(0,0,"Direction 0", curses.color_pair(4))
+    stdscr.refresh()
+    finalizado = False
+    #primerPase = True
+    #Loop to search for a solution (it could be infinite)
+    while not(finalizado):
+        #time.sleep (0.5) #Small delay to make the laberinth resolution more visually attractive
+        stdscr.getkey()
+        #Check for termination
+        if (V == fV and H == fH):
+            #Final messages and algorithm closure
+            stdscr.addstr(maxV-1,0,"Laberint solved! Exit path: *", curses.color_pair(3))
+            stdscr.addstr(0,0,"Finished! Press a key to solve the laberinth", curses.color_pair(3))
+            stdscr.refresh()
+            stdscr.getkey()
+            finalizado = True
+        if (B[V][H] == "O"):
+            B[V] = B [V][:H] + "*" + B [V][H+1:]
+            stdscr.addstr(V,H,"*", curses.color_pair(4))
+            stdscr.addstr(0,0,"Direction 0  H: " + str(H) + " V: " + str(V) + "        ", curses.color_pair(4))
+            stdscr.refresh()
+            if (direction == 0):
+                nH = nH + 1
+            elif (direction == 1):
+                nV = nV + 1
+            elif (direction == 2):
+                nH = nH - 1
+            else:
+                nV = nV - 1
+        elif (B[V][H] == "#" or B[V][H] == " "):
+            if (direction == 0):
+                nH = H - 1
+                nV = V
+                if (B[V+1][H-1] == "O"):
+                    direction = 1
+                elif (B[V][H-2] == "O"):
+                    direction = 2
+                elif (B[V-1][H-1] == "O"):
+                    direction = 3
+                elif (B[nV][nH] == "*"):
+                    direction = 2
+            elif (direction == 1):
+                nH = H
+                nV = V - 1 
+                if (B[V-1][H+1] == "O"):
+                    direction = 0
+                elif (B[V-1][H-1] == "O"):
+                    direction = 2
+                elif (B[V-2][H] == "O"):
+                    direction = 3
+                elif (B[nV][nH] == "*"):
+                    direction = 3
+            elif (direction == 2):
+                nH = H + 1
+                nV = V 
+                if (B[V][H+2] == "O"):
+                    direction = 0
+                elif (B[V+1][H+1] == "O"):
+                    direction = 1
+                elif (B[V-1][H+1] == "O"):
+                    direction = 3
+                elif (B[nV][nH] == "*"):
+                    direction = 0  
+            else:
+                nH = H
+                nV = V + 1
+                if (B[V-1][H+1] == "O"):
+                    direction = 0
+                elif (B[V-2][H] == "O"):
+                    direction = 1
+                elif (B[V-1][H-1] == "O"):
+                    direction = 2 
+                elif (B[nV][nH] == "*"):
+                    direction = 1  
+            B[nV] = B [nV][:nH] + "O" + B [nV][nH+1:]
+            stdscr.addstr(nV,nH,"O", curses.color_pair(2))
+            stdscr.refresh()
+            stdscr.addstr(0,0,"Direction " + str(direction) + "  H: " + str(nH) + " V: " + str(V) + "        ", curses.color_pair(4))    
+        V = nV
+        H = nH
+        #First pass
+        # if (primerPase):
+        #     if (direction == 0):
+        #         stdscr.addstr(0,0,"Direction 0  H: " + str(H) + "V: " + str(V) + " First pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         nV = V
+        #         nH = H + 1
+        #         if (B[nV][nH] == "O"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #             primerPase = False
+        #     elif (direction == 1):
+        #         stdscr.addstr(0,0,"Direction 1  H: " + str(H) + "V: " + str(V) + " First pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         nV = V + 1
+        #         nH = H
+        #         if (B[nV][nH] == "O"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #             primerPase = False
+        #     elif (direction == 2):
+        #         stdscr.addstr(0,0,"Direction 2  H: " + str(H) + "V: " + str(V) + " First pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         nV = V
+        #         nH = H - 1
+        #         if (B[nV][nH] == "O"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #             primerPase = False
+        #     elif (direction == 3):
+        #         stdscr.addstr(0,0,"Direction 3  H: " + str(H) + "V: " + str(V) + " First pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         nV = V - 1
+        #         nH = H
+        #         if (B[nV][nH] == "O"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #             primerPase = False        
+        # #Second pass
+        # else:
+        #     if (direction == 0):
+        #         stdscr.addstr(0,0,"Direction 0  H: " + str(H) + "V: " + str(V) + " Second pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         primerPase = True  
+        #         if (B[nV][nH] == "*"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #         else:
+        #             direction = direction + 1 
+        #     elif (direction == 1):
+        #         stdscr.addstr(0,0,"Direction 1  H: " + str(H) + "V: " + str(V) + " Second pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         primerPase = True 
+        #         if (B[nV][nH] == "*"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH  
+        #         else:
+        #             direction = direction + 1 
+        #     elif (direction == 2):
+        #         stdscr.addstr(0,0,"Direction 2  H: " + str(H) + "V: " + str(V) + " Second pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         primerPase = True   
+        #         if (B[nV][nH] == "*"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #         else:
+        #             direction = direction + 1 
+        #     elif (direction == 3):
+        #         stdscr.addstr(0,0,"Direction 3  H: " + str(H) + "V: " + str(V) + " Second pass", curses.color_pair(4))
+        #         stdscr.refresh()
+        #         primerPase = True  
+        #         if (B[nV][nH] == "*"):
+        #             B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+        #             stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+        #             V = nV
+        #             H = nH
+        #         else:
+        #             direction = 0          
+
 
 wrapper(main)
 
