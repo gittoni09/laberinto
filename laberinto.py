@@ -174,14 +174,19 @@ def main(stdscr):
     fH = 33
     #Create a copy of the laberith for the resolution algorithm
     B = A.copy()
+    #List to host all the coordinates in case we have to back up
+    caminoRetroceso = [[V,H,direction]]
+    retroceder = False
 
-    stdscr.addstr(0,0,"Starting resolution", curses.color_pair(4))
+    stdscr.addstr(0,0,"Starting laberith resolution       ", curses.color_pair(4))
     stdscr.refresh()
     finalizado = False
+
     #Loop to search for a solution
     while not(finalizado):
         #time.sleep (0.3) #Small delay to make the laberinth resolution visually more attractive
         stdscr.getkey() # Debugging
+        retroceder = False
         #Check for termination
         if (V == fV and H == fH):
             #Final messages and algorithm closure
@@ -195,111 +200,85 @@ def main(stdscr):
             stdscr.addstr(V,H,"*", curses.color_pair(4))
             stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(H) + " V: " + str(V) + "        ", curses.color_pair(4))
             stdscr.refresh()
-            if (direction == 0):
-                nH = nH + 1
-            elif (direction == 1):
+            if (direction == 0 and B[V+1][H] == "O"):
                 nV = nV + 1
-            elif (direction == 2):
-                nH = nH - 1
-            else:
-                nV = nV - 1
-        elif (B[V][H] == "#" or B[V][H] == " "):
-            if (direction == 0):
-                nH = H - 1
-                nV = V
-                if (B[V+1][H-1] == "O"):
-                    direction = 1
-                elif (B[V][H-2] == "O"):
-                    direction = 2
-                elif (B[V-1][H-1] == "O"):
-                    direction = 3
-                elif (B[nV][nH] == "*"):
-                    direction = 2
-            elif (direction == 1):
-                nH = H
-                nV = V - 1 
-                if (B[V-1][H+1] == "O"):
-                    direction = 0
-                elif (B[V-1][H-1] == "O"):
-                    direction = 2
-                elif (B[V-2][H] == "O"):
-                    direction = 3
-                elif (B[nV][nH] == "*"):
-                    direction = 3
-            elif (direction == 2):
-                nH = H + 1
-                nV = V 
-                if (B[V][H+2] == "O"):
-                    direction = 0
-                elif (B[V+1][H+1] == "O"):
-                    direction = 1
-                elif (B[V-1][H+1] == "O"):
-                    direction = 3
-                elif (B[nV][nH] == "*"):
-                    direction = 0  
-            else:
-                nH = H
-                nV = V + 1
-                if (B[V+1][H+1] == "O"):
-                    direction = 0
-                elif (B[V+2][H] == "O"):
-                    direction = 1
-                elif (B[V+1][H-1] == "O"):
-                    direction = 2 
-                elif (B[nV][nH] == "*"):
-                    direction = 1  
-            B[nV] = B [nV][:nH] + "O" + B [nV][nH+1:]
-            stdscr.addstr(nV,nH,"O", curses.color_pair(2))
-            stdscr.refresh()
-            stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(V) + "        ", curses.color_pair(4))    
-        elif (B[V][H] == "*"):
-            if (B[V][H+1] == "O"):
-                direction = 0
-                nH = H + 1
-                nV = V
-            elif (B[V+1][H] == "O"):
                 direction = 1
-                nH = H
-                nV = V + 1
-            elif (B[V][H-1] == "O"):
-                direction = 2
-                nH = H -1
-                nV = V
-            elif (B[V-1][H] == "O"):
+            elif (direction == 0 and B[V][H+1] == "O"):
+                nH = nH + 1
+                direction = 0
+            elif (direction == 0 and B[V-1][H] == "O"):
+                nV = nV - 1
                 direction = 3
-                nH = H
-                nV = V - 1
-            else:
-                if (B[V][H+1] == "*"):
-                    direction = 0
-                    nH = H + 1
-                    nV = V
-                elif (B[V+1][H] == "*"):
+            elif (direction == 1 and B[V][H-1] == "O"):
+                nH = nH -1
+                direction = 2
+            elif (direction == 1 and B[V][H+1] == "O"):
+                nH = nH + 1
+                direction = 0
+            elif (direction == 1 and B[V+1][H] == "O"):
+                nV = nV + 1
+                direction = 1
+            elif (direction == 2 and B[V-1][H] == "O"):
+                nV = nV - 1
+                direction = 3
+            elif (direction == 2 and B[V+1][H] == "O"):
+                nV = nV + 1
+                direction = 1
+            elif (direction == 2 and B[V][H-1] == "O"):
+                nH = nH - 1
+                direction = 2
+            elif (direction == 3 and B[V][H+1] == "O"):
+                nH = nH + 1
+                direction = 0
+            elif (direction == 3 and B[V][H-1] == "O"):
+                nH = nH - 1
+                direction = 2
+            elif (direction == 3 and B[V-1][H] == "O"):
+                nV = nV - 1
+                direction = 3
+            caminoRetroceso.append([V,H,direction])
+        else:
+            retroceder = True
+            while (retroceder):
+                temp = caminoRetroceso.pop()
+                nV = temp[0]
+                nH = temp[1]
+                direction = temp[2]
+                B[nV] = B [nV][:nH] + "O" + B [nV][nH+1:]
+                stdscr.addstr(nV,nH,"O", curses.color_pair(2))
+                stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(nV) + "        ", curses.color_pair(4))    
+                stdscr.refresh()
+                stdscr.getkey() # Debugging   
+                if (direction == 0 and B[nV+1][nH] == "O"):
                     direction = 1
-                    nH = H
-                    nV = V + 1
-                elif (B[V][H-1] == "*"):
+                    retroceder = False
+                elif (direction == 0 and B[nV][nH-1] == "O"):
                     direction = 2
-                    nH = H - 1
-                    nV = V
-                elif (B[V-1][H] == "*"):
+                    retroceder = False
+                elif (direction == 0 and B[nV-1][nH] == "O"):
                     direction = 3
-                    nH = H
-                    nV = V -1
-            if (nV > maxV):
-                nV = maxV
-            elif (nV < 0):
-                nV = 0
-            elif (nH > maxH):
-                nH = maxH
-            elif (nH < 0):
-                nH = 0
-            B[nV] = B [V][:H] + "*" + B [V][H+1:]
-            stdscr.addstr(V,H,"*", curses.color_pair(2))
-            stdscr.refresh()
-            stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(V) + "        ", curses.color_pair(4))    
+                    retroceder = False
+                elif (direction == 1 and B[nV][nH-1] == "O"):
+                    direction = 2
+                    retroceder = False
+                elif (direction == 1 and B[nV-1][nH] == "O"):
+                    direction = 3
+                    retroceder = False
+                elif (direction == 1 and B[nV][nH+1] == "O"):
+                    direction = 0
+                    retroceder = False    
+                elif (direction == 2 and B[nV-1][nH] == "O"):
+                    direction = 3
+                    retroceder = False
+                elif (direction == 2 and B[nV][nH] == "O"):
+                    direction = 0
+                    retroceder = False
+                elif (direction == 2 and B[nV+1][nH] == "O"):
+                    direction = 1
+                    retroceder = False            
         V = nV
         H = nH
+
 
 wrapper(main)
 
