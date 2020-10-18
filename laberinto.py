@@ -184,8 +184,8 @@ def main(stdscr):
 
     #Loop to search for a solution
     while not(finalizado):
-        #time.sleep (0.3) #Small delay to make the laberinth resolution visually more attractive
-        stdscr.getkey() # Debugging
+        time.sleep (0.3) #Small delay to make the laberinth resolution visually more attractive
+        #stdscr.getkey() # Debugging
         retroceder = False
         #Check for termination
         if (V == fV and H == fH):
@@ -240,6 +240,7 @@ def main(stdscr):
         else:
             retroceder = True
             while (retroceder):
+                time.sleep (0.3) #Small delay to make the laberinth resolution visually more attractive
                 temp = caminoRetroceso.pop()
                 nV = temp[0]
                 nH = temp[1]
@@ -248,7 +249,7 @@ def main(stdscr):
                 stdscr.addstr(nV,nH,"O", curses.color_pair(2))
                 stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(nV) + "        ", curses.color_pair(4))    
                 stdscr.refresh()
-                stdscr.getkey() # Debugging   
+                #stdscr.getkey() # Debugging   
                 if (direction == 0 and B[nV+1][nH] == "O"):
                     direction = 1
                     retroceder = False
@@ -270,12 +271,21 @@ def main(stdscr):
                 elif (direction == 2 and B[nV-1][nH] == "O"):
                     direction = 3
                     retroceder = False
-                elif (direction == 2 and B[nV][nH] == "O"):
+                elif (direction == 2 and B[nV][nH+1] == "O"):
                     direction = 0
                     retroceder = False
                 elif (direction == 2 and B[nV+1][nH] == "O"):
                     direction = 1
-                    retroceder = False            
+                    retroceder = False  
+                elif (direction == 3 and B[nV][nH+1] == "O"):
+                    direction = 0
+                    retroceder = False
+                elif (direction == 3 and B[nV+1][nH] == "O"):
+                    direction = 1
+                    retroceder = False
+                elif (direction == 3 and B[nV][nH-1] == "O"):
+                    direction = 2
+                    retroceder = False           
         V = nV
         H = nH
 
