@@ -184,14 +184,14 @@ def main(stdscr):
 
     #Loop to search for a solution
     while not(finalizado):
-        time.sleep (0.3) #Small delay to make the laberinth resolution visually more attractive
+        time.sleep (0.1) #Small delay to make the laberinth resolution visually more attractive
         #stdscr.getkey() # Debugging
         retroceder = False
         #Check for termination
         if (V == fV and H == fH):
             #Final messages and algorithm closure
             stdscr.addstr(maxV-1,0,"Exit path: *                       ", curses.color_pair(3))
-            stdscr.addstr(0,0,"Press a key to exit                ", curses.color_pair(3))
+            stdscr.addstr(0,0,"Exit found! Press a key to exit    ", curses.color_pair(3))
             stdscr.refresh()
             stdscr.getkey()
             finalizado = True
@@ -240,7 +240,7 @@ def main(stdscr):
         else:
             retroceder = True
             while (retroceder):
-                time.sleep (0.3) #Small delay to make the laberinth resolution visually more attractive
+                time.sleep (0.1) #Small delay to make the laberinth resolution visually more attractive
                 temp = caminoRetroceso.pop()
                 nV = temp[0]
                 nH = temp[1]
@@ -250,46 +250,20 @@ def main(stdscr):
                 stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(nV) + "        ", curses.color_pair(4))    
                 stdscr.refresh()
                 #stdscr.getkey() # Debugging   
-                if (direction == 0 and B[nV+1][nH] == "O"):
+                if (random.random() > 0.6 and B[nV-1][nH] == "O"):
+                    direction = 3
+                    retroceder = False
+                elif (B[nV][nH-1] == "O"):
+                    direction = 2
+                    retroceder = False
+                elif (random.random() > 0.6 and B[nV+1][nH] == "O"):
                     direction = 1
                     retroceder = False
-                elif (direction == 0 and B[nV][nH-1] == "O"):
-                    direction = 2
-                    retroceder = False
-                elif (direction == 0 and B[nV-1][nH] == "O"):
-                    direction = 3
-                    retroceder = False
-                elif (direction == 1 and B[nV][nH-1] == "O"):
-                    direction = 2
-                    retroceder = False
-                elif (direction == 1 and B[nV-1][nH] == "O"):
-                    direction = 3
-                    retroceder = False
-                elif (direction == 1 and B[nV][nH+1] == "O"):
+                elif (random.random() > 0.6 and B[nV][nH+1] == "O"):
                     direction = 0
                     retroceder = False    
-                elif (direction == 2 and B[nV-1][nH] == "O"):
-                    direction = 3
-                    retroceder = False
-                elif (direction == 2 and B[nV][nH+1] == "O"):
-                    direction = 0
-                    retroceder = False
-                elif (direction == 2 and B[nV+1][nH] == "O"):
-                    direction = 1
-                    retroceder = False  
-                elif (direction == 3 and B[nV][nH+1] == "O"):
-                    direction = 0
-                    retroceder = False
-                elif (direction == 3 and B[nV+1][nH] == "O"):
-                    direction = 1
-                    retroceder = False
-                elif (direction == 3 and B[nV][nH-1] == "O"):
-                    direction = 2
-                    retroceder = False           
         V = nV
         H = nH
-
-
 wrapper(main)
 
 
