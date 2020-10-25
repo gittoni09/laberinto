@@ -157,9 +157,9 @@ def main(stdscr):
     stdscr.addstr(0,0,"Finished! Press a key to solve     ", curses.color_pair(3))
     stdscr.refresh()
     stdscr.getkey()
-    ##############################################
-    #Algorithm to solve the laberinth
-    ##############################################
+    #################################################
+    #Trial and error algorithm to solve the laberinth
+    #################################################
     #We always start at this position
     V = 1
     H = 1
@@ -198,8 +198,9 @@ def main(stdscr):
         if (B[V][H] == "O"):
             B[V] = B [V][:H] + "*" + B [V][H+1:]
             stdscr.addstr(V,H,"*", curses.color_pair(4))
-            stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(H) + " V: " + str(V) + "        ", curses.color_pair(4))
+            #stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(H) + " V: " + str(V) + "        ", curses.color_pair(4))
             stdscr.refresh()
+            #Try to find the next open path on the right
             if (direction == 0 and B[V+1][H] == "O"):
                 nV = nV + 1
                 direction = 1
@@ -238,30 +239,37 @@ def main(stdscr):
                 direction = 3
             caminoRetroceso.append([V,H,direction])
         else:
-            retroceder = True
+            retroceder = True #If the next position is not a O then we back up 
             while (retroceder):
                 time.sleep (0.1) #Small delay to make the laberinth resolution visually more attractive
-                temp = caminoRetroceso.pop()
-                nV = temp[0]
-                nH = temp[1]
-                direction = temp[2]
-                B[nV] = B [nV][:nH] + "O" + B [nV][nH+1:]
-                stdscr.addstr(nV,nH,"O", curses.color_pair(2))
-                stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(nV) + "        ", curses.color_pair(4))    
-                stdscr.refresh()
-                #stdscr.getkey() # Debugging   
-                if (random.random() > 0.6 and B[nV-1][nH] == "O"):
+                if caminoRetroceso: #While the backup list is not empty go back one step
+                    temp = caminoRetroceso.pop()
+                    nV = temp[0]
+                    nH = temp[1]
+                    direction = temp[2]
+                    B[nV] = B [nV][:nH] + "*" + B [nV][nH+1:]
+                    stdscr.addstr(nV,nH,"*", curses.color_pair(4))
+                    #stdscr.addstr(0,0,"Direction: " + str(direction) + "  H: " + str(nH) + " V: " + str(nV) + "        ", curses.color_pair(4))    
+                    stdscr.refresh()
+                    #stdscr.getkey() # Debugging   
+                #Try to find a new open path
+                if (B[nV-1][nH] == "O"):
+                    nV = nV - 1
                     direction = 3
                     retroceder = False
                 elif (B[nV][nH-1] == "O"):
+                    nH = nH - 1
                     direction = 2
                     retroceder = False
-                elif (random.random() > 0.6 and B[nV+1][nH] == "O"):
+                elif (B[nV+1][nH] == "O"):
+                    nV = nV + 1
                     direction = 1
                     retroceder = False
-                elif (random.random() > 0.6 and B[nV][nH+1] == "O"):
+                elif (B[nV][nH+1] == "O"):
+                    nH = nH + 1
                     direction = 0
                     retroceder = False    
+                #If there are no open paths and the back up list is empty, the search will hung
         V = nV
         H = nH
 wrapper(main)
